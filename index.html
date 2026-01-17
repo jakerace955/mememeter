@@ -6,8 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
-    <title>Meme Meter - Real-Time Memecoin Scanner</title>
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTWVtZSBNZXRlciIsInNob3J0X25hbWUiOiJNTSIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMDAwMDAwIiwidGhlbWVfY29sb3IiOiIjMDBmZjAwIn0=">
+    <title>Meme Meter - All Solana Tokens Scanner</title>
     <style>
         * {
             margin: 0;
@@ -20,6 +19,8 @@
             --green: #00ff00;
             --red: #ff0055;
             --yellow: #ffc800;
+            --blue: #00aaff;
+            --purple: #aa00ff;
             --bg-primary: #000;
             --bg-secondary: #0a0a0a;
             --border: rgba(255, 255, 255, 0.05);
@@ -73,16 +74,11 @@
             letter-spacing: -0.5px;
         }
         
-        .install-btn {
-            background: var(--green);
-            color: #000;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 900;
-            cursor: pointer;
-            display: none;
+        .brand-tagline {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+            margin-top: 2px;
         }
         
         .status-bar {
@@ -115,11 +111,6 @@
             animation: pulse 2s ease-in-out infinite;
         }
         
-        .status-dot.error {
-            background: var(--red);
-            box-shadow: 0 0 16px rgba(255, 0, 85, 0.8);
-        }
-        
         @keyframes pulse {
             0%, 100% { opacity: 1; transform: scale(1); }
             50% { opacity: 0.6; transform: scale(1.2); }
@@ -131,7 +122,7 @@
             border-bottom: 1px solid rgba(255, 0, 85, 0.15);
             padding: 16px 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
             gap: 16px;
         }
         
@@ -142,7 +133,7 @@
         }
         
         .stat-value {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 900;
             font-family: 'Monaco', monospace;
             color: var(--green);
@@ -216,48 +207,25 @@
             cursor: pointer;
             transition: all 0.2s;
             position: relative;
-            overflow: hidden;
         }
         
-        .token-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--green), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .token-card:hover::before {
-            opacity: 0.3;
-        }
-        
-        .token-card:active {
+        .token-card:hover {
             background: rgba(20, 20, 20, 0.95);
-            transform: scale(0.98);
         }
         
         .token-card.new {
-            animation: tokenAppear 0.5s ease, newGlow 3s ease;
+            animation: tokenAppear 0.5s ease;
         }
         
         @keyframes tokenAppear {
             from {
                 opacity: 0;
-                transform: translateY(-30px);
+                transform: translateY(-20px);
             }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-        
-        @keyframes newGlow {
-            0%, 100% { box-shadow: none; }
-            50% { box-shadow: inset 0 0 40px rgba(0, 255, 0, 0.1); }
         }
         
         .token-icon {
@@ -274,6 +242,14 @@
             flex-shrink: 0;
             box-shadow: 0 4px 16px rgba(0, 255, 136, 0.3);
             position: relative;
+            overflow: hidden;
+        }
+        
+        .token-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
         }
         
         .token-icon.danger {
@@ -288,22 +264,19 @@
             box-shadow: 0 4px 16px rgba(255, 200, 0, 0.3);
         }
         
-        .new-badge {
+        .platform-badge {
             position: absolute;
-            top: -4px;
-            right: -4px;
-            background: var(--green);
-            color: #000;
-            font-size: 8px;
-            font-weight: 900;
-            padding: 2px 6px;
-            border-radius: 8px;
-            animation: badgePulse 2s ease infinite;
-        }
-        
-        @keyframes badgePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            bottom: -2px;
+            right: -2px;
+            background: #000;
+            border: 2px solid #000;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
         }
         
         .token-info {
@@ -334,12 +307,23 @@
             font-family: 'Monaco', monospace;
         }
         
+        .dex-badge {
+            font-size: 10px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(0, 170, 255, 0.15);
+            color: var(--blue);
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+        
         .token-meta {
             display: flex;
             align-items: center;
             gap: 12px;
             font-size: 12px;
             font-weight: 700;
+            flex-wrap: wrap;
         }
         
         .token-price {
@@ -347,13 +331,12 @@
             font-family: 'Monaco', monospace;
         }
         
-        .token-mcap {
+        .token-liquidity {
             color: rgba(255, 255, 255, 0.6);
         }
         
-        .token-age {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 11px;
+        .token-volume {
+            color: rgba(255, 255, 255, 0.5);
         }
         
         /* Risk Badge */
@@ -413,24 +396,6 @@
             font-weight: 700;
         }
         
-        /* Empty State */
-        .empty-state {
-            padding: 80px 20px;
-            text-align: center;
-        }
-        
-        .empty-icon {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.2;
-        }
-        
-        .empty-text {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 700;
-        }
-        
         /* Toast */
         .toast {
             position: fixed;
@@ -453,11 +418,6 @@
         .toast.show {
             transform: translateX(0);
             opacity: 1;
-        }
-        
-        .toast.danger {
-            background: linear-gradient(135deg, var(--red) 0%, #dd0055 100%);
-            color: #fff;
         }
         
         /* Bottom Bar */
@@ -549,22 +509,6 @@
             font-weight: 900;
             cursor: pointer;
         }
-        
-        /* Responsive */
-        @media (max-width: 480px) {
-            .stats-bar {
-                grid-template-columns: repeat(3, 1fr);
-            }
-            
-            .token-name {
-                font-size: 16px;
-            }
-            
-            .risk-badge {
-                font-size: 18px;
-                padding: 8px 12px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -572,10 +516,14 @@
     <div class="header">
         <div class="logo-section">
             <div class="logo-group">
-                <div class="logo">MM</div>
-                <div class="brand-name">Meme Meter</div>
+                <div>
+                    <div class="logo">MM</div>
+                </div>
+                <div>
+                    <div class="brand-name">Meme Meter</div>
+                    <div class="brand-tagline">All Solana Tokens</div>
+                </div>
             </div>
-            <button class="install-btn" id="installBtn">📱 Install</button>
         </div>
         <div class="status-bar">
             <div class="status-item">
@@ -595,7 +543,7 @@
     <div class="stats-bar">
         <div class="stat">
             <div class="stat-value" id="statScanned">0</div>
-            <div class="stat-label">Scanned</div>
+            <div class="stat-label">Total</div>
         </div>
         <div class="stat">
             <div class="stat-value" id="statRugs" style="color: var(--red);">0</div>
@@ -614,10 +562,13 @@
     <!-- Filter Tabs -->
     <div class="filter-tabs">
         <button class="filter-tab active" data-filter="all">All Tokens</button>
-        <button class="filter-tab" data-filter="new">🔥 New</button>
+        <button class="filter-tab" data-filter="new">🔥 New (24h)</button>
         <button class="filter-tab" data-filter="safe">✅ Safe</button>
-        <button class="filter-tab" data-filter="medium">⚠️ On the Fence</button>
+        <button class="filter-tab" data-filter="medium">⚠️ Caution</button>
         <button class="filter-tab" data-filter="danger">🚨 High Risk</button>
+        <button class="filter-tab" data-filter="raydium">Raydium</button>
+        <button class="filter-tab" data-filter="orca">Orca</button>
+        <button class="filter-tab" data-filter="pump">Pump.fun</button>
     </div>
 
     <!-- Container -->
@@ -631,7 +582,7 @@
         <div class="token-list" id="tokenList">
             <div class="loading">
                 <div class="spinner"></div>
-                <div class="loading-text">Connecting to blockchain...</div>
+                <div class="loading-text">Scanning Solana blockchain...</div>
             </div>
         </div>
     </div>
@@ -661,18 +612,11 @@
         // ============================================
         
         const CONFIG = {
-            // STEP 1: Get your FREE Helius API key from https://helius.dev
-            // Sign up → Dashboard → Create API Key → Copy it here
-            HELIUS_API_KEY: '3b625ec8-4be8-4348-b8dd-43addf34330c',  // ← REPLACE THIS
-            
-            // Fallback APIs
-            PUMP_FUN_API: '/api/tokens',
-            REFRESH_INTERVAL: 20000, // 20 seconds for fallback
-            MAX_TOKENS: 100,
-            
-            // WebSocket settings
-            WS_RECONNECT_DELAY: 5000,
-            WS_MAX_RETRIES: 5
+            HELIUS_API_KEY: '3b625ec8-4be8-4348-b8dd-43addf34330c',
+            DEXSCREENER_API: 'https://api.dexscreener.com/latest/dex/tokens',
+            DEXSCREENER_PAIRS: 'https://api.dexscreener.com/latest/dex/pairs/solana',
+            REFRESH_INTERVAL: 30000, // 30 seconds
+            MAX_TOKENS: 100
         };
 
         // ============================================
@@ -681,36 +625,20 @@
         
         let tokens = [];
         let currentFilter = 'all';
-        let ws = null;
-        let wsRetries = 0;
         let lastUpdate = Date.now();
-        let newTokenIds = new Set();
 
         // ============================================
         // INITIALIZATION
         // ============================================
         
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Meme Meter initializing...');
+            console.log('🚀 Meme Meter - All Solana Tokens Edition');
             setupEventListeners();
-            checkHeliusKey();
-            startDataFetching();
+            startFetching();
             setupUpdateTimer();
         });
 
-        function checkHeliusKey() {
-            if (CONFIG.HELIUS_API_KEY === 'YOUR_HELIUS_API_KEY_HERE') {
-                console.warn('⚠️ Helius API key not set. Using fallback mode.');
-                showToast('Using demo mode. Set up Helius for real-time updates.', 'danger');
-            }
-        }
-
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
-        
         function setupEventListeners() {
-            // Filter tabs
             document.querySelectorAll('.filter-tab').forEach(tab => {
                 tab.addEventListener('click', (e) => {
                     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -719,226 +647,118 @@
                     renderTokens();
                 });
             });
-
-            // PWA Install
-            let deferredPrompt;
-            window.addEventListener('beforeinstallprompt', (e) => {
-                e.preventDefault();
-                deferredPrompt = e;
-                document.getElementById('installBtn').style.display = 'block';
-            });
-
-            document.getElementById('installBtn').addEventListener('click', async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response: ${outcome}`);
-                    deferredPrompt = null;
-                    document.getElementById('installBtn').style.display = 'none';
-                }
-            });
         }
 
         // ============================================
         // DATA FETCHING
         // ============================================
         
-        function startDataFetching() {
-            if (CONFIG.HELIUS_API_KEY !== 'YOUR_HELIUS_API_KEY_HERE') {
-                // Try WebSocket connection
-                connectWebSocket();
-            } else {
-                // Fallback to polling
-                fetchTokensHTTP();
-                setInterval(fetchTokensHTTP, CONFIG.REFRESH_INTERVAL);
-            }
+        function startFetching() {
+            fetchAllSolanaTokens();
+            setInterval(fetchAllSolanaTokens, CONFIG.REFRESH_INTERVAL);
         }
 
-        async function fetchTokensHTTP() {
-            console.log('📡 Fetching tokens via HTTP...');
-            updateStatus('active', 'Updating...');
+        async function fetchAllSolanaTokens() {
+            console.log('📡 Fetching ALL Solana tokens...');
+            updateStatus('active', 'Scanning...');
 
             try {
-                const response = await fetch(CONFIG.PUMP_FUN_API);
+                // Fetch from DexScreener - gets ALL Solana pairs
+                const response = await fetch('https://api.dexscreener.com/latest/dex/search?q=SOL');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
-                console.log(`✅ Got ${data.length} tokens`);
+                console.log(`✅ Got ${data.pairs?.length || 0} pairs`);
 
-                processTokensData(data);
-                updateStatus('active', 'Live (Polling)');
-                lastUpdate = Date.now();
+                if (data.pairs && data.pairs.length > 0) {
+                    // Filter for Solana only
+                    const solanaPairs = data.pairs.filter(p => p.chainId === 'solana');
+                    processTokensData(solanaPairs);
+                    updateStatus('active', 'Live');
+                    lastUpdate = Date.now();
+                } else {
+                    throw new Error('No pairs returned');
+                }
 
             } catch (error) {
                 console.error('❌ Fetch error:', error);
                 updateStatus('error', 'Error');
                 showError('Failed to fetch tokens. Retrying...');
                 
-                // Load demo data as absolute fallback
+                // Load demo as fallback
                 if (tokens.length === 0) {
                     loadDemoData();
                 }
             }
         }
 
-        function connectWebSocket() {
-            if (!CONFIG.HELIUS_API_KEY || CONFIG.HELIUS_API_KEY === 'YOUR_HELIUS_API_KEY_HERE') {
-                console.log('No Helius key, skipping WebSocket');
-                return;
-            }
-
-            console.log('🔌 Connecting to Helius WebSocket...');
-            updateStatus('active', 'Connecting...');
-
-            const wsUrl = `wss://mainnet.helius-rpc.com/?api-key=${CONFIG.HELIUS_API_KEY}`;
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                console.log('✅ WebSocket connected!');
-                updateStatus('active', 'Live');
-                wsRetries = 0;
-                
-                // Initial fetch via HTTP
-                fetchTokensHTTP();
-                
-                // Subscribe to pump.fun program
-                subscribeToPumpFun();
-                
-                showToast('🔥 Connected! Real-time updates active');
-            };
-
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    handleWebSocketMessage(data);
-                } catch (error) {
-                    console.error('WS message error:', error);
-                }
-            };
-
-            ws.onerror = (error) => {
-                console.error('❌ WebSocket error:', error);
-                updateStatus('error', 'Connection error');
-            };
-
-            ws.onclose = () => {
-                console.log('🔌 WebSocket closed');
-                updateStatus('error', 'Disconnected');
-                
-                // Attempt reconnection
-                if (wsRetries < CONFIG.WS_MAX_RETRIES) {
-                    wsRetries++;
-                    console.log(`Reconnecting... (${wsRetries}/${CONFIG.WS_MAX_RETRIES})`);
-                    setTimeout(connectWebSocket, CONFIG.WS_RECONNECT_DELAY);
-                } else {
-                    showToast('Switched to polling mode', 'danger');
-                    // Fall back to HTTP polling
-                    setInterval(fetchTokensHTTP, CONFIG.REFRESH_INTERVAL);
-                }
-            };
-        }
-
-        function subscribeToPumpFun() {
-            if (!ws || ws.readyState !== WebSocket.OPEN) return;
-
-            // Subscribe to pump.fun program for real-time updates
-            const subscribeMessage = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "programSubscribe",
-                "params": [
-                    "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", // Pump.fun program
-                    {
-                        "encoding": "jsonParsed",
-                        "commitment": "confirmed"
-                    }
-                ]
-            };
-
-            ws.send(JSON.stringify(subscribeMessage));
-            console.log('📡 Subscribed to pump.fun program');
-        }
-
-        function handleWebSocketMessage(data) {
-            // Handle subscription confirmations
-            if (data.result) {
-                console.log('Subscription confirmed:', data.id);
-                return;
-            }
-
-            // Handle new transactions
-            if (data.method === 'programNotification') {
-                console.log('🔥 New pump.fun activity detected!');
-                // Refresh data when we see activity
-                fetchTokensHTTP();
-            }
-        }
-
-        // ============================================
-        // DATA PROCESSING
-        // ============================================
-        
-        function processTokensData(data) {
+        function processTokensData(pairs) {
             const existingIds = new Set(tokens.map(t => t.address));
             
-            const newTokens = data.slice(0, CONFIG.MAX_TOKENS).map((token, index) => {
-                const address = token.mint || token.id || `token_${index}`;
+            tokens = pairs.slice(0, CONFIG.MAX_TOKENS).map((pair, index) => {
+                const address = pair.pairAddress || `pair_${index}`;
                 const isNew = !existingIds.has(address);
                 
-                if (isNew) {
-                    newTokenIds.add(address);
-                    setTimeout(() => newTokenIds.delete(address), 5000); // Remove "new" badge after 5s
-                }
+                const liquidity = pair.liquidity?.usd || 0;
+                const volume24h = pair.volume?.h24 || 0;
+                const priceChange = Math.abs(pair.priceChange?.h24 || 0);
+                const age = Date.now() - (pair.pairCreatedAt || Date.now());
                 
                 return {
                     address: address,
-                    name: token.name || token.id || `Token ${index + 1}`,
-                    symbol: (token.symbol || 'MEME').toUpperCase(),
-                    marketCap: token.usd_market_cap || token.market_cap || Math.random() * 100000,
-                    holders: token.holder_count || Math.floor(Math.random() * 500) + 10,
-                    createdAt: token.created_timestamp || Date.now() - Math.random() * 3600000,
+                    name: pair.baseToken?.name || 'Unknown',
+                    symbol: pair.baseToken?.symbol || 'UNK',
+                    price: pair.priceUsd || '0',
+                    liquidity: liquidity,
+                    volume24h: volume24h,
+                    priceChange: pair.priceChange?.h24 || 0,
+                    dex: pair.dexId || 'unknown',
+                    pairUrl: pair.url || '',
+                    createdAt: pair.pairCreatedAt || Date.now(),
                     isNew: isNew,
-                    riskScore: calculateRiskScore(token)
+                    riskScore: calculateRiskScore(liquidity, volume24h, priceChange, age, pair.dexId)
                 };
             });
 
-            // Show notification for new tokens
-            const newCount = newTokens.filter(t => t.isNew).length;
-            if (newCount > 0 && tokens.length > 0) {
+            const newCount = tokens.filter(t => t.isNew).length;
+            if (newCount > 0 && existingIds.size > 0) {
                 showToast(`🔥 ${newCount} new token${newCount > 1 ? 's' : ''} detected!`);
             }
 
-            tokens = newTokens;
             updateStats();
             renderTokens();
         }
 
-        function calculateRiskScore(token) {
+        function calculateRiskScore(liquidity, volume24h, priceChange, age, dexId) {
             let score = 0;
-            const marketCap = token.usd_market_cap || token.market_cap || 0;
-            const holders = token.holder_count || 0;
             
-            // Market cap analysis (0-40 points)
-            if (marketCap < 5000) score += 40;
-            else if (marketCap < 10000) score += 30;
-            else if (marketCap < 50000) score += 20;
-            else if (marketCap < 100000) score += 10;
+            // Liquidity analysis (0-35 points)
+            if (liquidity < 1000) score += 35;
+            else if (liquidity < 5000) score += 25;
+            else if (liquidity < 10000) score += 15;
+            else if (liquidity < 50000) score += 5;
             
-            // Holder analysis (0-35 points)
-            if (holders < 10) score += 35;
-            else if (holders < 25) score += 25;
-            else if (holders < 50) score += 15;
-            else if (holders < 100) score += 8;
+            // Volume analysis (0-25 points)
+            if (volume24h < 100) score += 25;
+            else if (volume24h < 1000) score += 15;
+            else if (volume24h < 10000) score += 8;
             
-            // Age analysis (0-25 points)
-            const age = Date.now() - (token.created_timestamp || Date.now());
-            const ageMinutes = age / 60000;
-            if (ageMinutes < 5) score += 25;
-            else if (ageMinutes < 15) score += 15;
-            else if (ageMinutes < 60) score += 8;
+            // Price volatility (0-20 points)
+            if (priceChange > 100) score += 20;
+            else if (priceChange > 50) score += 15;
+            else if (priceChange > 20) score += 10;
+            
+            // Age analysis (0-15 points)
+            const ageHours = age / (1000 * 60 * 60);
+            if (ageHours < 1) score += 15;
+            else if (ageHours < 24) score += 10;
+            else if (ageHours < 168) score += 5; // < 1 week
+            
+            // Platform reputation (0-5 points)
+            if (dexId === 'unknown' || dexId === 'pump') score += 5;
             
             return Math.min(100, Math.max(0, score));
         }
@@ -949,10 +769,28 @@
             return 'safe';
         }
 
-        function getRiskColor(score) {
-            if (score >= 75) return 'var(--red)';
-            if (score >= 40) return 'var(--yellow)';
-            return '#00ff88';
+        function getDexEmoji(dexId) {
+            const emojis = {
+                'raydium': '⚡',
+                'orca': '🐋',
+                'pump': '🔥',
+                'meteora': '☄️',
+                'phoenix': '🐦',
+                'lifinity': '♾️'
+            };
+            return emojis[dexId] || '💎';
+        }
+
+        function formatLiquidity(liq) {
+            if (liq >= 1000000) return `$${(liq / 1000000).toFixed(2)}M`;
+            if (liq >= 1000) return `$${(liq / 1000).toFixed(1)}K`;
+            return `$${Math.floor(liq)}`;
+        }
+
+        function formatVolume(vol) {
+            if (vol >= 1000000) return `${(vol / 1000000).toFixed(2)}M`;
+            if (vol >= 1000) return `${(vol / 1000).toFixed(1)}K`;
+            return Math.floor(vol);
         }
 
         // ============================================
@@ -967,40 +805,44 @@
             let filteredTokens = tokens;
             
             if (currentFilter === 'new') {
-                filteredTokens = tokens.slice(0, 20);
+                const dayAgo = Date.now() - (24 * 60 * 60 * 1000);
+                filteredTokens = tokens.filter(t => t.createdAt > dayAgo);
             } else if (currentFilter === 'safe') {
                 filteredTokens = tokens.filter(t => t.riskScore < 40);
             } else if (currentFilter === 'medium') {
                 filteredTokens = tokens.filter(t => t.riskScore >= 40 && t.riskScore < 75);
             } else if (currentFilter === 'danger') {
                 filteredTokens = tokens.filter(t => t.riskScore >= 75);
+            } else if (['raydium', 'orca', 'pump', 'meteora'].includes(currentFilter)) {
+                filteredTokens = tokens.filter(t => t.dex.toLowerCase().includes(currentFilter));
             }
 
             if (filteredTokens.length === 0) {
                 container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-icon">🔍</div>
-                        <div class="empty-text">No tokens found for this filter</div>
+                    <div class="loading">
+                        <div style="font-size: 48px; opacity: 0.3;">🔍</div>
+                        <div class="loading-text">No tokens found for this filter</div>
                     </div>
                 `;
                 return;
             }
 
             container.innerHTML = filteredTokens.map(token => `
-                <div class="token-card ${newTokenIds.has(token.address) ? 'new' : ''}">
+                <div class="token-card ${token.isNew ? 'new' : ''}" onclick="window.open('${token.pairUrl}', '_blank')">
                     <div class="token-icon ${getRiskLevel(token.riskScore)}">
                         ${token.symbol.substring(0, 2)}
-                        ${newTokenIds.has(token.address) ? '<div class="new-badge">NEW</div>' : ''}
+                        <div class="platform-badge">${getDexEmoji(token.dex)}</div>
                     </div>
                     <div class="token-info">
                         <div class="token-header">
                             <div class="token-name">${escapeHtml(token.name)}</div>
                             <div class="token-symbol">$${token.symbol}</div>
+                            <div class="dex-badge">${token.dex.toUpperCase()}</div>
                         </div>
                         <div class="token-meta">
-                            <div class="token-mcap">${formatMCap(token.marketCap)}</div>
-                            <div>${token.holders} holders</div>
-                            <div class="token-age">${formatAge(token.createdAt)}</div>
+                            <div class="token-price">$${parseFloat(token.price).toFixed(6)}</div>
+                            <div class="token-liquidity">Liq: ${formatLiquidity(token.liquidity)}</div>
+                            <div class="token-volume">Vol: ${formatVolume(token.volume24h)}</div>
                         </div>
                     </div>
                     <div class="risk-badge risk-${getRiskLevel(token.riskScore)}">
@@ -1010,25 +852,6 @@
             `).join('');
 
             console.log(`📊 Rendered ${filteredTokens.length} tokens`);
-        }
-
-        // ============================================
-        // UTILITY FUNCTIONS
-        // ============================================
-        
-        function formatMCap(mcap) {
-            if (mcap >= 1000000) return `$${(mcap / 1000000).toFixed(2)}M`;
-            if (mcap >= 1000) return `$${(mcap / 1000).toFixed(1)}K`;
-            return `$${Math.floor(mcap)}`;
-        }
-
-        function formatAge(timestamp) {
-            const minutes = Math.floor((Date.now() - timestamp) / 60000);
-            if (minutes < 1) return 'Just now';
-            if (minutes < 60) return `${minutes}m ago`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours}h ago`;
-            return `${Math.floor(hours / 24)}d ago`;
         }
 
         function escapeHtml(text) {
@@ -1054,7 +877,7 @@
             const dot = document.getElementById('wsStatus');
             const statusText = document.getElementById('wsText');
             
-            dot.className = 'status-dot ' + status;
+            dot.className = 'status-dot ' + (status === 'active' ? 'active' : '');
             statusText.textContent = text;
         }
 
@@ -1066,10 +889,10 @@
             }, 1000);
         }
 
-        function showToast(message, type = 'success') {
+        function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message;
-            toast.className = 'toast show' + (type === 'danger' ? ' danger' : '');
+            toast.classList.add('show');
             
             setTimeout(() => {
                 toast.classList.remove('show');
@@ -1084,7 +907,7 @@
             container.insertAdjacentHTML('afterbegin', `
                 <div class="error-banner">
                     <div class="error-message">${message}</div>
-                    <button class="retry-btn" onclick="location.reload()">Retry</button>
+                    <button class="retry-btn" onclick="fetchAllSolanaTokens()">Retry</button>
                 </div>
             `);
         }
@@ -1092,45 +915,35 @@
         function loadDemoData() {
             console.log('📋 Loading demo data...');
             
-            const demoTokens = [
-                { name: 'MoonShot', symbol: 'MOON', marketCap: 125000, holders: 342 },
-                { name: 'RugPull Alert', symbol: 'RUG', marketCap: 4500, holders: 23 },
-                { name: 'SafeCoin', symbol: 'SAFE', marketCap: 450000, holders: 892 },
-                { name: 'ScamToken', symbol: 'SCAM', marketCap: 2100, holders: 12 },
-                { name: 'DiamondHands', symbol: 'DIAM', marketCap: 234000, holders: 567 },
-                { name: 'PaperHands', symbol: 'PAPER', marketCap: 3400, holders: 15 },
-                { name: 'ToTheMoon', symbol: 'TTM', marketCap: 89000, holders: 234 },
-                { name: 'Ponzi2024', symbol: 'PONZI', marketCap: 1200, holders: 8 },
-                { name: 'LegitCoin', symbol: 'LEGIT', marketCap: 678000, holders: 1204 },
-                { name: 'ExitScam', symbol: 'EXIT', marketCap: 5600, holders: 34 }
+            const demoPairs = [
+                { name: 'Jupiter', symbol: 'JUP', liquidity: 1250000, volume: 3500000, dex: 'raydium', price: 0.85 },
+                { name: 'Bonk', symbol: 'BONK', liquidity: 890000, volume: 2100000, dex: 'orca', price: 0.000012 },
+                { name: 'Moonshot', symbol: 'MOON', liquidity: 125000, volume: 340000, dex: 'pump', price: 0.0034 },
+                { name: 'SafeCoin', symbol: 'SAFE', liquidity: 450000, volume: 780000, dex: 'raydium', price: 1.25 },
+                { name: 'RugPull', symbol: 'RUG', liquidity: 4500, volume: 1200, dex: 'pump', price: 0.00001 },
             ];
 
-            tokens = demoTokens.map((token, index) => ({
+            tokens = demoPairs.map((pair, index) => ({
                 address: `demo_${index}`,
-                name: token.name,
-                symbol: token.symbol,
-                marketCap: token.marketCap,
-                holders: token.holders,
-                createdAt: Date.now() - Math.random() * 7200000,
+                name: pair.name,
+                symbol: pair.symbol,
+                price: pair.price.toString(),
+                liquidity: pair.liquidity,
+                volume24h: pair.volume,
+                priceChange: Math.random() * 50 - 25,
+                dex: pair.dex,
+                pairUrl: '#',
+                createdAt: Date.now() - Math.random() * 86400000,
                 isNew: false,
-                riskScore: calculateRiskScore(token)
+                riskScore: calculateRiskScore(pair.liquidity, pair.volume, 10, Date.now() - pair.createdAt, pair.dex)
             }));
 
             updateStats();
             renderTokens();
-            showToast('Using demo data. Connect Helius for live updates.', 'danger');
+            showToast('Using demo data. Scanning will resume shortly.', 'danger');
         }
 
-        // ============================================
-        // ERROR HANDLING
-        // ============================================
-        
-        window.onerror = function(msg, url, lineNo, columnNo, error) {
-            console.error('Global error:', msg, error);
-            return false;
-        };
-
-        console.log('✅ Meme Meter loaded successfully!');
+        console.log('✅ Meme Meter loaded - All Solana Tokens Edition!');
     </script>
 </body>
 </html>
