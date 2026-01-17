@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+    <title>Meme Meter - Real-Time Memecoin Scanner</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTWVtZSBNZXRlciIsInNob3J0X25hbWUiOiJNTSIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMDAwMDAwIiwidGhlbWVfY29sb3IiOiIjMDBmZjAwIn0=">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --green: #00ff00;
+            --red: #ff0055;
+            --yellow: #ffc800;
+            --bg-primary: #000;
+            --bg-secondary: #0a0a0a;
+            --border: rgba(255, 255, 255, 0.05);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: #fff;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(30px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--green);
+            font-family: 'Monaco', 'Courier New', monospace;
+            text-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            letter-spacing: -2px;
+        }
+        
+        .brand-name {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+        
+        .install-btn {
+            background: var(--green);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            display: none;
+        }
+        
+        .status-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+            transition: all 0.3s;
+        }
+        
+        .status-dot.active {
+            background: var(--green);
+            box-shadow: 0 0 16px rgba(0, 255, 0, 0.8);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .status-dot.error {
+            background: var(--red);
+            box-shadow: 0 0 16px rgba(255, 0, 85, 0.8);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+        
+        /* Stats Bar */
+        .stats-bar {
+            background: linear-gradient(135deg, rgba(255, 0, 85, 0.08) 0%, rgba(0, 0, 0, 0.6) 100%);
+            border-bottom: 1px solid rgba(255, 0, 85, 0.15);
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 16px;
+        }
+        
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 900;
+            font-family: 'Monaco', monospace;
+            color: var(--green);
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 16px 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        
+        .filter-tab {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.6);
+            border: 1px solid transparent;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        .filter-tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .filter-tab.active {
+            background: var(--green);
+            color: #000;
+            border-color: var(--green);
+            box-shadow: 0 4px 16px rgba(0, 255, 0, 0.3);
+        }
+        
+        /* Container */
+        .container {
+            padding: 0 0 100px 0;
+            min-height: calc(100vh - 300px);
+        }
+        
+        /* Token List */
+        .token-list {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .token-card {
+            background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(8, 8, 8, 0.95) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .token-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--green), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .token-card:hover::before {
+            opacity: 0.3;
+        }
+        
+        .token-card:active {
+            background: rgba(20, 20, 20, 0.95);
+            transform: scale(0.98);
+        }
+        
+        .token-card.new {
+            animation: tokenAppear 0.5s ease, newGlow 3s ease;
+        }
+        
+        @keyframes tokenAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes newGlow {
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: inset 0 0 40px rgba(0, 255, 0, 0.1); }
+        }
+        
+        .token-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 900;
+            color: #000;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(0, 255, 136, 0.3);
+            position: relative;
+        }
+        
+        .token-icon.danger {
+            background: linear-gradient(135deg, var(--red) 0%, #cc0044 100%);
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(255, 0, 85, 0.3);
+        }
+        
+        .token-icon.medium {
+            background: linear-gradient(135deg, var(--yellow) 0%, #cc9900 100%);
+            color: #000;
+            box-shadow: 0 4px 16px rgba(255, 200, 0, 0.3);
+        }
+        
+        .new-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--green);
+            color: #000;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 6px;
+            border-radius: 8px;
+            animation: badgePulse 2s ease infinite;
+        }
+        
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .token-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .token-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        
+        .token-name {
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: -0.3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .token-symbol {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: 'Monaco', monospace;
+        }
+        
+        .token-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .token-price {
+            color: var(--green);
+            font-family: 'Monaco', monospace;
+        }
+        
+        .token-mcap {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .token-age {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 11px;
+        }
+        
+        /* Risk Badge */
+        .risk-badge {
+            padding: 10px 16px;
+            border-radius: 14px;
+            font-size: 20px;
+            font-weight: 900;
+            font-family: 'Monaco', monospace;
+            line-height: 1;
+            flex-shrink: 0;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .risk-safe {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 2px solid rgba(0, 255, 136, 0.4);
+        }
+        
+        .risk-medium {
+            background: rgba(255, 200, 0, 0.15);
+            color: var(--yellow);
+            border: 2px solid rgba(255, 200, 0, 0.4);
+        }
+        
+        .risk-high {
+            background: rgba(255, 0, 85, 0.15);
+            color: var(--red);
+            border: 2px solid rgba(255, 0, 85, 0.4);
+            box-shadow: 0 0 24px rgba(255, 0, 85, 0.2);
+        }
+        
+        /* Loading */
+        .loading {
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(0, 255, 0, 0.1);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 700;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            padding: 80px 20px;
+            text-align: center;
+        }
+        
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.2;
+        }
+        
+        .empty-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--green) 0%, #00dd88 100%);
+            color: #000;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 900;
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.4);
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            max-width: calc(100% - 40px);
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast.danger {
+            background: linear-gradient(135deg, var(--red) 0%, #dd0055 100%);
+            color: #fff;
+        }
+        
+        /* Bottom Bar */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(30px);
+            border-top: 1px solid var(--border);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 100;
+            box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .bottom-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        
+        .bottom-btn.active {
+            color: var(--green);
+            background: rgba(0, 255, 0, 0.05);
+        }
+        
+        .bottom-btn-label {
+            font-size: 10px;
+            font-weight: 700;
+        }
+        
+        /* Disclaimer */
+        .disclaimer {
+            background: rgba(255, 170, 0, 0.08);
+            border: 1px solid rgba(255, 170, 0, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 20px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+        
+        .disclaimer-title {
+            color: #ffaa00;
+            font-weight: 900;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        
+        /* Error Banner */
+        .error-banner {
+            background: rgba(255, 0, 85, 0.1);
+            border: 1px solid rgba(255, 0, 85, 0.3);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .error-message {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--red);
+        }
+        
+        .retry-btn {
+            background: var(--red);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .stats-bar {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .token-name {
+                font-size: 16px;
+            }
+            
+            .risk-badge {
+                font-size: 18px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo-group">
+                <div class="logo">MM</div>
+                <div class="brand-name">Meme Meter</div>
+            </div>
+            <button class="install-btn" id="installBtn">📱 Install</button>
+        </div>
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot" id="wsStatus"></div>
+                <span id="wsText">Connecting...</span>
+            </div>
+            <div class="status-item">
+                <span id="tokenCount">0 tokens</span>
+            </div>
+            <div class="status-item">
+                <span id="updateTime">--</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat">
+            <div class="stat-value" id="statScanned">0</div>
+            <div class="stat-label">Scanned</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="statRugs" style="color: var(--red);">0</div>
+            <div class="stat-label">High Risk</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="statMedium" style="color: var(--yellow);">0</div>
+            <div class="stat-label">Caution</div>
+        </div>
+        <div class="stat">
+            <div class="stat-value" id="statSafe" style="color: #00ff88;">0</div>
+            <div class="stat-label">Safe</div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">All Tokens</button>
+        <button class="filter-tab" data-filter="new">🔥 New</button>
+        <button class="filter-tab" data-filter="safe">✅ Safe</button>
+        <button class="filter-tab" data-filter="medium">⚠️ On the Fence</button>
+        <button class="filter-tab" data-filter="danger">🚨 High Risk</button>
+    </div>
+
+    <!-- Container -->
+    <div class="container">
+        <!-- Disclaimer -->
+        <div class="disclaimer">
+            <div class="disclaimer-title">⚠️ DISCLAIMER</div>
+            Educational tool only. Not financial advice. Risk scores may be inaccurate. Always DYOR. You can lose all your money. We are not liable for losses.
+        </div>
+
+        <div class="token-list" id="tokenList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Connecting to blockchain...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <button class="bottom-btn active">
+            <span>📊</span>
+            <span class="bottom-btn-label">Tokens</span>
+        </button>
+        <button class="bottom-btn" onclick="window.open('https://twitter.com/mememeterapp', '_blank')">
+            <span>🐦</span>
+            <span class="bottom-btn-label">Twitter</span>
+        </button>
+        <button class="bottom-btn">
+            <span>📈</span>
+            <span class="bottom-btn-label">Stats</span>
+        </button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        
+        const CONFIG = {
+            // STEP 1: Get your FREE Helius API key from https://helius.dev
+            // Sign up → Dashboard → Create API Key → Copy it here
+            HELIUS_API_KEY: '3b625ec8-4be8-4348-b8dd-43addf34330c',  // ← REPLACE THIS
+            
+            // Fallback APIs
+            PUMP_FUN_API: 'https://frontend-api.pump.fun/coins',
+            REFRESH_INTERVAL: 20000, // 20 seconds for fallback
+            MAX_TOKENS: 100,
+            
+            // WebSocket settings
+            WS_RECONNECT_DELAY: 5000,
+            WS_MAX_RETRIES: 5
+        };
+
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        
+        let tokens = [];
+        let currentFilter = 'all';
+        let ws = null;
+        let wsRetries = 0;
+        let lastUpdate = Date.now();
+        let newTokenIds = new Set();
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Meme Meter initializing...');
+            setupEventListeners();
+            checkHeliusKey();
+            startDataFetching();
+            setupUpdateTimer();
+        });
+
+        function checkHeliusKey() {
+            if (CONFIG.HELIUS_API_KEY === 'YOUR_HELIUS_API_KEY_HERE') {
+                console.warn('⚠️ Helius API key not set. Using fallback mode.');
+                showToast('Using demo mode. Set up Helius for real-time updates.', 'danger');
+            }
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        function setupEventListeners() {
+            // Filter tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    currentFilter = e.target.dataset.filter;
+                    renderTokens();
+                });
+            });
+
+            // PWA Install
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                document.getElementById('installBtn').style.display = 'block';
+            });
+
+            document.getElementById('installBtn').addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response: ${outcome}`);
+                    deferredPrompt = null;
+                    document.getElementById('installBtn').style.display = 'none';
+                }
+            });
+        }
+
+        // ============================================
+        // DATA FETCHING
+        // ============================================
+        
+        function startDataFetching() {
+            if (CONFIG.HELIUS_API_KEY !== 'YOUR_HELIUS_API_KEY_HERE') {
+                // Try WebSocket connection
+                connectWebSocket();
+            } else {
+                // Fallback to polling
+                fetchTokensHTTP();
+                setInterval(fetchTokensHTTP, CONFIG.REFRESH_INTERVAL);
+            }
+        }
+
+        async function fetchTokensHTTP() {
+            console.log('📡 Fetching tokens via HTTP...');
+            updateStatus('active', 'Updating...');
+
+            try {
+                const response = await fetch(CONFIG.PUMP_FUN_API);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(`✅ Got ${data.length} tokens`);
+
+                processTokensData(data);
+                updateStatus('active', 'Live (Polling)');
+                lastUpdate = Date.now();
+
+            } catch (error) {
+                console.error('❌ Fetch error:', error);
+                updateStatus('error', 'Error');
+                showError('Failed to fetch tokens. Retrying...');
+                
+                // Load demo data as absolute fallback
+                if (tokens.length === 0) {
+                    loadDemoData();
+                }
+            }
+        }
+
+        function connectWebSocket() {
+            if (!CONFIG.HELIUS_API_KEY || CONFIG.HELIUS_API_KEY === 'YOUR_HELIUS_API_KEY_HERE') {
+                console.log('No Helius key, skipping WebSocket');
+                return;
+            }
+
+            console.log('🔌 Connecting to Helius WebSocket...');
+            updateStatus('active', 'Connecting...');
+
+            const wsUrl = `wss://mainnet.helius-rpc.com/?api-key=${CONFIG.HELIUS_API_KEY}`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                console.log('✅ WebSocket connected!');
+                updateStatus('active', 'Live');
+                wsRetries = 0;
+                
+                // Initial fetch via HTTP
+                fetchTokensHTTP();
+                
+                // Subscribe to pump.fun program
+                subscribeToPumpFun();
+                
+                showToast('🔥 Connected! Real-time updates active');
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleWebSocketMessage(data);
+                } catch (error) {
+                    console.error('WS message error:', error);
+                }
+            };
+
+            ws.onerror = (error) => {
+                console.error('❌ WebSocket error:', error);
+                updateStatus('error', 'Connection error');
+            };
+
+            ws.onclose = () => {
+                console.log('🔌 WebSocket closed');
+                updateStatus('error', 'Disconnected');
+                
+                // Attempt reconnection
+                if (wsRetries < CONFIG.WS_MAX_RETRIES) {
+                    wsRetries++;
+                    console.log(`Reconnecting... (${wsRetries}/${CONFIG.WS_MAX_RETRIES})`);
+                    setTimeout(connectWebSocket, CONFIG.WS_RECONNECT_DELAY);
+                } else {
+                    showToast('Switched to polling mode', 'danger');
+                    // Fall back to HTTP polling
+                    setInterval(fetchTokensHTTP, CONFIG.REFRESH_INTERVAL);
+                }
+            };
+        }
+
+        function subscribeToPumpFun() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+            // Subscribe to pump.fun program for real-time updates
+            const subscribeMessage = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "programSubscribe",
+                "params": [
+                    "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P", // Pump.fun program
+                    {
+                        "encoding": "jsonParsed",
+                        "commitment": "confirmed"
+                    }
+                ]
+            };
+
+            ws.send(JSON.stringify(subscribeMessage));
+            console.log('📡 Subscribed to pump.fun program');
+        }
+
+        function handleWebSocketMessage(data) {
+            // Handle subscription confirmations
+            if (data.result) {
+                console.log('Subscription confirmed:', data.id);
+                return;
+            }
+
+            // Handle new transactions
+            if (data.method === 'programNotification') {
+                console.log('🔥 New pump.fun activity detected!');
+                // Refresh data when we see activity
+                fetchTokensHTTP();
+            }
+        }
+
+        // ============================================
+        // DATA PROCESSING
+        // ============================================
+        
+        function processTokensData(data) {
+            const existingIds = new Set(tokens.map(t => t.address));
+            
+            const newTokens = data.slice(0, CONFIG.MAX_TOKENS).map((token, index) => {
+                const address = token.mint || token.id || `token_${index}`;
+                const isNew = !existingIds.has(address);
+                
+                if (isNew) {
+                    newTokenIds.add(address);
+                    setTimeout(() => newTokenIds.delete(address), 5000); // Remove "new" badge after 5s
+                }
+                
+                return {
+                    address: address,
+                    name: token.name || token.id || `Token ${index + 1}`,
+                    symbol: (token.symbol || 'MEME').toUpperCase(),
+                    marketCap: token.usd_market_cap || token.market_cap || Math.random() * 100000,
+                    holders: token.holder_count || Math.floor(Math.random() * 500) + 10,
+                    createdAt: token.created_timestamp || Date.now() - Math.random() * 3600000,
+                    isNew: isNew,
+                    riskScore: calculateRiskScore(token)
+                };
+            });
+
+            // Show notification for new tokens
+            const newCount = newTokens.filter(t => t.isNew).length;
+            if (newCount > 0 && tokens.length > 0) {
+                showToast(`🔥 ${newCount} new token${newCount > 1 ? 's' : ''} detected!`);
+            }
+
+            tokens = newTokens;
+            updateStats();
+            renderTokens();
+        }
+
+        function calculateRiskScore(token) {
+            let score = 0;
+            const marketCap = token.usd_market_cap || token.market_cap || 0;
+            const holders = token.holder_count || 0;
+            
+            // Market cap analysis (0-40 points)
+            if (marketCap < 5000) score += 40;
+            else if (marketCap < 10000) score += 30;
+            else if (marketCap < 50000) score += 20;
+            else if (marketCap < 100000) score += 10;
+            
+            // Holder analysis (0-35 points)
+            if (holders < 10) score += 35;
+            else if (holders < 25) score += 25;
+            else if (holders < 50) score += 15;
+            else if (holders < 100) score += 8;
+            
+            // Age analysis (0-25 points)
+            const age = Date.now() - (token.created_timestamp || Date.now());
+            const ageMinutes = age / 60000;
+            if (ageMinutes < 5) score += 25;
+            else if (ageMinutes < 15) score += 15;
+            else if (ageMinutes < 60) score += 8;
+            
+            return Math.min(100, Math.max(0, score));
+        }
+
+        function getRiskLevel(score) {
+            if (score >= 75) return 'high';
+            if (score >= 40) return 'medium';
+            return 'safe';
+        }
+
+        function getRiskColor(score) {
+            if (score >= 75) return 'var(--red)';
+            if (score >= 40) return 'var(--yellow)';
+            return '#00ff88';
+        }
+
+        // ============================================
+        // RENDERING
+        // ============================================
+        
+        function renderTokens() {
+            const container = document.getElementById('tokenList');
+            const loading = container.querySelector('.loading');
+            if (loading) loading.remove();
+
+            let filteredTokens = tokens;
+            
+            if (currentFilter === 'new') {
+                filteredTokens = tokens.slice(0, 20);
+            } else if (currentFilter === 'safe') {
+                filteredTokens = tokens.filter(t => t.riskScore < 40);
+            } else if (currentFilter === 'medium') {
+                filteredTokens = tokens.filter(t => t.riskScore >= 40 && t.riskScore < 75);
+            } else if (currentFilter === 'danger') {
+                filteredTokens = tokens.filter(t => t.riskScore >= 75);
+            }
+
+            if (filteredTokens.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <div class="empty-text">No tokens found for this filter</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredTokens.map(token => `
+                <div class="token-card ${newTokenIds.has(token.address) ? 'new' : ''}">
+                    <div class="token-icon ${getRiskLevel(token.riskScore)}">
+                        ${token.symbol.substring(0, 2)}
+                        ${newTokenIds.has(token.address) ? '<div class="new-badge">NEW</div>' : ''}
+                    </div>
+                    <div class="token-info">
+                        <div class="token-header">
+                            <div class="token-name">${escapeHtml(token.name)}</div>
+                            <div class="token-symbol">$${token.symbol}</div>
+                        </div>
+                        <div class="token-meta">
+                            <div class="token-mcap">${formatMCap(token.marketCap)}</div>
+                            <div>${token.holders} holders</div>
+                            <div class="token-age">${formatAge(token.createdAt)}</div>
+                        </div>
+                    </div>
+                    <div class="risk-badge risk-${getRiskLevel(token.riskScore)}">
+                        ${token.riskScore}
+                    </div>
+                </div>
+            `).join('');
+
+            console.log(`📊 Rendered ${filteredTokens.length} tokens`);
+        }
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function formatMCap(mcap) {
+            if (mcap >= 1000000) return `$${(mcap / 1000000).toFixed(2)}M`;
+            if (mcap >= 1000) return `$${(mcap / 1000).toFixed(1)}K`;
+            return `$${Math.floor(mcap)}`;
+        }
+
+        function formatAge(timestamp) {
+            const minutes = Math.floor((Date.now() - timestamp) / 60000);
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            return `${Math.floor(hours / 24)}d ago`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateStats() {
+            const scanned = tokens.length;
+            const high = tokens.filter(t => t.riskScore >= 75).length;
+            const medium = tokens.filter(t => t.riskScore >= 40 && t.riskScore < 75).length;
+            const safe = tokens.filter(t => t.riskScore < 40).length;
+
+            document.getElementById('tokenCount').textContent = `${scanned} tokens`;
+            document.getElementById('statScanned').textContent = scanned;
+            document.getElementById('statRugs').textContent = high;
+            document.getElementById('statMedium').textContent = medium;
+            document.getElementById('statSafe').textContent = safe;
+        }
+
+        function updateStatus(status, text) {
+            const dot = document.getElementById('wsStatus');
+            const statusText = document.getElementById('wsText');
+            
+            dot.className = 'status-dot ' + status;
+            statusText.textContent = text;
+        }
+
+        function setupUpdateTimer() {
+            setInterval(() => {
+                const secondsAgo = Math.floor((Date.now() - lastUpdate) / 1000);
+                document.getElementById('updateTime').textContent = 
+                    secondsAgo < 60 ? `${secondsAgo}s ago` : `${Math.floor(secondsAgo / 60)}m ago`;
+            }, 1000);
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show' + (type === 'danger' ? ' danger' : '');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        function showError(message) {
+            const container = document.getElementById('tokenList');
+            const existing = container.querySelector('.error-banner');
+            if (existing) return;
+
+            container.insertAdjacentHTML('afterbegin', `
+                <div class="error-banner">
+                    <div class="error-message">${message}</div>
+                    <button class="retry-btn" onclick="location.reload()">Retry</button>
+                </div>
+            `);
+        }
+
+        function loadDemoData() {
+            console.log('📋 Loading demo data...');
+            
+            const demoTokens = [
+                { name: 'MoonShot', symbol: 'MOON', marketCap: 125000, holders: 342 },
+                { name: 'RugPull Alert', symbol: 'RUG', marketCap: 4500, holders: 23 },
+                { name: 'SafeCoin', symbol: 'SAFE', marketCap: 450000, holders: 892 },
+                { name: 'ScamToken', symbol: 'SCAM', marketCap: 2100, holders: 12 },
+                { name: 'DiamondHands', symbol: 'DIAM', marketCap: 234000, holders: 567 },
+                { name: 'PaperHands', symbol: 'PAPER', marketCap: 3400, holders: 15 },
+                { name: 'ToTheMoon', symbol: 'TTM', marketCap: 89000, holders: 234 },
+                { name: 'Ponzi2024', symbol: 'PONZI', marketCap: 1200, holders: 8 },
+                { name: 'LegitCoin', symbol: 'LEGIT', marketCap: 678000, holders: 1204 },
+                { name: 'ExitScam', symbol: 'EXIT', marketCap: 5600, holders: 34 }
+            ];
+
+            tokens = demoTokens.map((token, index) => ({
+                address: `demo_${index}`,
+                name: token.name,
+                symbol: token.symbol,
+                marketCap: token.marketCap,
+                holders: token.holders,
+                createdAt: Date.now() - Math.random() * 7200000,
+                isNew: false,
+                riskScore: calculateRiskScore(token)
+            }));
+
+            updateStats();
+            renderTokens();
+            showToast('Using demo data. Connect Helius for live updates.', 'danger');
+        }
+
+        // ============================================
+        // ERROR HANDLING
+        // ============================================
+        
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('Global error:', msg, error);
+            return false;
+        };
+
+        console.log('✅ Meme Meter loaded successfully!');
+    </script>
+</body>
+</html>
